@@ -181,16 +181,12 @@ int main() {
                 searchProductByName();
                 break;
             case 0:
-                printf("Exiting program. Goodbye!\n");
+                printf("Thanks You.\n");
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
         }
     } while (choice != 0);
-
-    return 0;
-
-
 
     return 0;
 }
