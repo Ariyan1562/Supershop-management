@@ -1,0 +1,7 @@
+1 shampoo 470.00 100pcs 0.00
+2 coffee 450.00 50pac 0.00
+3 milk 100.00 20L 0.00
+4 chips 50.00 30pac 0.00
+5 rice 80.00 50 0.00
+6 soap 60.00 5pcs 0.00
+7 ice-cream 60.00 20 0.00
