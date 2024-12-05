@@ -11,19 +11,15 @@ typedef struct {
 } Item;
 
 // Global variables
-Item supershop[MAX_ITEMS];
+Product supershop[MAX_ITEMS]; // Array to hold items
+int product_count = 0;
+User users[MAX_USERS]; // Array to hold users
+int userCount = 0;
 
-int supershopCount = 0;
-int displayState = 1; //1=shop
-
-
-// Function prototypes
-void addItem(int id, char *name, float price, char *quantity);
-void deleteItem(int id);
-void updateItem(int id);
-void displaySupershop();
-void searchProductByName();
-
+void addItem(char *name, float price, char *quantity, float discount);  //Ariyan
+void deleteItem(char *name);    //Ariyan
+void updateItem(char *name);    //Ariyan
+float enterDiscount();  //ariyan
 // Function to add an item to the shop
 void addItem(char *name, float price, char *quantity, float discount) {
 
