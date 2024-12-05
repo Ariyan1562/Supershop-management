@@ -24,170 +24,147 @@ void updateItem(int id);
 void displaySupershop();
 void searchProductByName();
 
-// Function to add items to the shop inventory
-void addItem(int id, char *name, float price, char *quantity) {
-    supershop[supershopCount].id = id;
-    strcpy(supershop[supershopCount].name, name);
-    supershop[supershopCount].price = price;
-    strcpy(supershop[supershopCount].quantity, quantity);
-    supershopCount++;
+// Function to add an item to the shop
+void addItem(char *name, float price, char *quantity, float discount) {
+
+    FILE *file = fopen("inventory.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file for reading!\n");
+        return;
+    }
+
+    product_count = 0;
+
+    while (fscanf(file, "%d %s %f %s %f", &supershop[product_count].id, supershop[product_count].name,
+                  &supershop[product_count].price, supershop[product_count].quantity,
+                  &supershop[product_count].discount) != EOF) {
+        product_count++;
+    }
+    fclose(file);
+
+    supershop[product_count].id = product_count + 1; // Automatically assign a unique ID
+    strcpy(supershop[product_count].name, name);
+    supershop[product_count].price = price;
+    strcpy(supershop[product_count].quantity, quantity);
+    supershop[product_count].discount = discount;
+
+    file = fopen("inventory.txt", "a");
+    if (file == NULL) {
+        printf("Error opening file for writing!\n");
+        return;
+    }
+    fprintf(file, "%d %s %.2f %s %.2f\n", supershop[product_count].id, supershop[product_count].name,
+            supershop[product_count].price, supershop[product_count].quantity, supershop[product_count].discount);
+    fclose(file);
+
+    product_count++;
 }
 
-// Function to delete an item from the supershop
-void deleteItem(int id) {
+// Function to delete an item from the shop
+void deleteItem(char *name) {
     int found = 0;
-    for (int i = 0; i < supershopCount; i++) {
-        if (supershop[i].id == id) {
+    FILE *file = fopen("inventory.txt", "r");
+    FILE *tempFile = fopen("temp_inventory.txt", "w"); // Temporary file for updated inventory
+
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    while (fscanf(file, "%d %s %f %s %f", &supershop[product_count].id, supershop[product_count].name,
+                  &supershop[product_count].price, supershop[product_count].quantity,
+                  &supershop[product_count].discount) != EOF) {
+
+        if (strcmp(supershop[product_count].name, name) == 0) {
             found = 1;
-            for (int j = i; j < supershopCount - 1; j++) {
-                supershop[j] = supershop[j + 1];
-            }
-            supershopCount--;
-            printf("Item with ID %d has been deleted from the supershop.\n", id);
-            break;
+            printf("\nProduct with name '%s' has been deleted.\n", name);
+            continue; // Skip writing this item to the temp file
         }
+        fprintf(tempFile, "%d %s %.2f %s %.2f\n", supershop[product_count].id, supershop[product_count].name,
+                supershop[product_count].price, supershop[product_count].quantity, supershop[product_count].discount);
     }
+
+    fclose(file);
+    fclose(tempFile);
+
+    // Replace the original file with the updated one
+    remove("inventory.txt");
+    rename("temp_inventory.txt", "inventory.txt");
+
     if (!found) {
-        printf("Item with ID %d not found in the supershop.\n", id);
+        printf("Product with name '%s' not found in the supershop.\n", name);
     }
+    view_menu(1);
 }
 
-// Function to update an existing item in the supershop
-void updateItem(int id) {
-    for (int i = 0; i < supershopCount; i++) {
-        if (supershop[i].id == id) {
-            char name[50];
+// Function to update an item in the shop
+void updateItem(char *name) {
+    int found = 0;
+    FILE *file = fopen("inventory.txt", "r");
+    FILE *tempFile = fopen("temp_inventory.txt", "w");
+
+    if (file == NULL || tempFile == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    while (fscanf(file, "%d %s %f %s %f", &supershop[product_count].id, supershop[product_count].name,
+                  &supershop[product_count].price, supershop[product_count].quantity,
+                  &supershop[product_count].discount) != EOF) {
+
+        if (strcmp(supershop[product_count].name, name) == 0) {
+            found = 1;
+            printf("\nUpdating product with name: %s.\n", name);
+
             float price;
             char quantity[10];
+            float discount;
 
-            printf("Updating item with ID %d.\n", id);
-            printf("Enter new name: ");
-            scanf(" %49[^\n]", name);
             printf("Enter new price: ");
             scanf("%f", &price);
             printf("Enter new quantity (e.g., 10L or 250gm): ");
             scanf(" %9s", quantity);
+            printf("Do you want to add a discount? (1 for Yes, 0 for No): ");
+            int addDiscount;
+            scanf("%d", &addDiscount);
 
-            strcpy(supershop[i].name, name);
-            supershop[i].price = price;
-            strcpy(supershop[i].quantity, quantity);
+            if (addDiscount) {
+                discount = enterDiscount();
+            } else {
+                discount = 0.0;
+            }
+            // Update item details
+            strcpy(supershop[product_count].name, name);
+            supershop[product_count].price = price;
+            strcpy(supershop[product_count].quantity, quantity);
+            supershop[product_count].discount = discount;
 
-            printf("Item with ID %d has been updated successfully.\n", id);
-            return;
+            printf("\nProduct with name %s has been updated successfully.\n", name);
         }
+
+        // Write the item to the temporary file
+        fprintf(tempFile, "%d %s %.2f %s %.2f\n", supershop[product_count].id, supershop[product_count].name,
+                supershop[product_count].price, supershop[product_count].quantity, supershop[product_count].discount);
+        product_count++;
     }
-    printf("Item with ID %d not found in the supershop.\n", id);
-}
 
-// Function to display items in the supershop
-void displaySupershop() {
-    printf("\n==================== Supershop ============================\n");
-    printf("| %-5s | %-20s | %-12s | %-10s |\n", "ID", "Name", "Price(taka)", "Stock");
-    printf("------------------------------------------------------------\n");
-    for (int i = 0; i < supershopCount; i++) {
-        printf("| %-5d | %-20s | %-12.2f | %-10s |\n",
-               supershop[i].id, supershop[i].name, supershop[i].price, supershop[i].quantity);
-    }
-    printf("============================================================\n");
-}
+    fclose(file);
+    fclose(tempFile);
 
-// Function to search for a product by name
-void searchProductByName() {
-    char searchName[50];
-    int found = 0;
-
-    printf("Enter product name to search: ");
-    scanf(" %c", &searchName);
-
-    printf("\n--- Search Results ---\n");
-    for (int i = 0; i < supershopCount; i++) {
-        if (strstr(supershop[i].name, searchName)) {
-            printf("ID: %d, Name: %s, Price: %.2f, Stock: %s\n",
-                   supershop[i].id, supershop[i].name, supershop[i].price, supershop[i].quantity);
-            found = 1;
-        }
-    }
+    // Replace the original file with the updated one
+    remove("inventory.txt");
+    rename("temp_inventory.txt", "inventory.txt");
 
     if (!found) {
-        printf("No products found matching '%s'.\n", searchName);
+        printf("Product with name %s not found in the supershop.\n", name);
     }
+    view_menu(1);
 }
 
-int main() {
-
-
-    addItem(1, "Milk ", 70, "100L");
-    addItem(2, "Bread ", 30, "100pcs");
-    addItem(3, "Eggs ", 12, "200pcs");
-    addItem(4, "Oil ", 160, "500L");
-    addItem(5, "Vasline ", 70, "300pcs");
-    addItem(6, "Lotion ", 30, "250pcs");
-    addItem(7, "Onion ", 12, "200kg");
-    addItem(8, "Meat ", 720, "100kg");
-
-
-
-
-    int choice;
-    do {
-        printf("\n======= Supershop Management =======\n");
-        printf("1. Display Supershop Inventory\n");
-        printf("2. Add Item\n");
-        printf("3. Delete Item\n");
-        printf("4. Update Item\n");
-        printf("5. Search Product by Name\n");
-        printf("0. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case 1:
-                displaySupershop();
-                break;
-            case 2: {
-                int id;
-                char name[50];
-                float price;
-                char quantity[10];
-
-                printf("Enter item ID: ");
-                scanf("%d", &id);
-                printf("Enter item name: ");
-                scanf(" %49[^\n]", name);
-                printf("Enter item price: ");
-                scanf("%f", &price);
-                printf("Enter item quantity (e.g., 10L or 250gm): ");
-                scanf(" %9s", quantity);
-
-                addItem(id, name, price, quantity);
-                printf("Item added successfully.\n");
-                break;
-            }
-            case 3: {
-                int id;
-                printf("Enter item ID to delete: ");
-                scanf("%d", &id);
-                deleteItem(id);
-                break;
-            }
-            case 4: {
-                int id;
-                printf("Enter item ID to update: ");
-                scanf("%d", &id);
-                updateItem(id);
-                break;
-            }
-            case 5:
-                searchProductByName();
-                break;
-            case 0:
-                printf("Thanks You.\n");
-                break;
-            default:
-                printf("Invalid choice. Please try again.\n");
-        }
-    } while (choice != 0);
-
-    return 0;
+// Function to enter discount percentage
+float enterDiscount() {
+    float discount;
+    printf("Enter discount percentage: ");
+    scanf("%f", &discount);
+    return discount;
 }
-
