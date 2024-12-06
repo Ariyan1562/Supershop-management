@@ -1,5 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <conio.h>
+
+#define RESET_COLOR "\x1b[0m"
+#define GREEN_COLOR "\x1b[32m"
+#define RED_COLOR "\x1b[31m"
+#define CYAN_COLOR "\x1b[36m"
+#define YELLOW_COLOR "\x1b[33m"
 
 #define MAX_ITEMS 100
 #define MAX_USERS 100
@@ -52,67 +59,93 @@ void checkout(); //ambia
 void selectPaymentMethod(); //ambia
 void updateStockAfterCheckout(); //ambia
 void displaySupershop(); //ambia
+void maskInput(char *input, int maxLen);
 
-
-
+    // Function to mask input for password
+void maskInput(char *input, int maxLen){
+    int i = 0;
+    char ch;
+    while ((ch = getch()) != '\r' && i < maxLen - 1)
+    { // '\r' is the Enter key
+        if (ch == '\b' && i > 0)
+        { // Backspace handling
+            printf("\b \b");
+            i--;
+        }
+        else if (ch != '\b')
+        {
+            input[i++] = ch;
+            printf("*");
+        }
+    }
+    input[i] = '\0';
+    printf("\n");
+}
 // Function for user registration
 void registration() {
     char username[LENGTH];
     char password[LENGTH];
     int isAdmin;
-    User user; // User structure instance
+    User user;
     FILE *file = fopen("users.txt", "a+");
 
     if (file == NULL) {
-        printf("Error opening file!\n");
+        printf(RED_COLOR "Error opening file!\n" RESET_COLOR);
         return;
     }
 
-    printf("\nSet Username: ");
+    printf(CYAN_COLOR "\nSet Username: " RESET_COLOR);
     scanf("%s", username);
 
     while (fscanf(file, "%s %s %d", user.username, user.password, &user.isAdmin) != EOF) {
         if (strcmp(user.username, username) == 0) {
-            printf("Username already exists!\n");
+            printf(RED_COLOR "Username already exists!\n" RESET_COLOR);
             fclose(file);
             return;
         }
     }
-    printf("Set Password: ");
-    scanf("%s", password);
-    printf("Register as admin (1) or user (0): ");
+
+    printf(CYAN_COLOR "Set Password: " RESET_COLOR);
+    maskInput(password, LENGTH);
+    printf(CYAN_COLOR "Register as admin (1) or user (0): " RESET_COLOR);
     scanf("%d", &isAdmin);
 
     fprintf(file, "%s %s %d\n", username, password, isAdmin);
-    printf("Registration successful!\n");
+    printf(GREEN_COLOR "Registration successful!\n" RESET_COLOR);
     fclose(file);
 }
 
 // Function for user login
-int login() {
+// Function for user login
+int login()
+{
     char username[LENGTH];
     char password[LENGTH];
-     User user;
+    User user;
     FILE *file = fopen("users.txt", "r");
 
-    if (file == NULL) {
-        printf("Error opening file!\n");
+    if (file == NULL)
+    {
+        printf(RED_COLOR "Error opening file!\n" RESET_COLOR);
         return -1;
     }
-    printf("\nEnter Username: ");
+
+    printf(CYAN_COLOR "\nEnter Username: " RESET_COLOR);
     scanf("%s", username);
-    printf("Enter Password: ");
-    scanf("%s", password);
+    printf(CYAN_COLOR "Enter Password: " RESET_COLOR);
+    maskInput(password, LENGTH);
 
-    while (fscanf(file, "%s %s %d", user.username, user.password, &user.isAdmin) != EOF) {
-
-        if (strcmp(user.username, username) == 0 && strcmp(user.password, password) == 0) {
-            printf("\n----------------Successful Login!-----------------\n");
+    while (fscanf(file, "%s %s %d", user.username, user.password, &user.isAdmin) != EOF)
+    {
+        if (strcmp(user.username, username) == 0 && strcmp(user.password, password) == 0)
+        {
+            printf(GREEN_COLOR "\n----------------Successful Login!-----------------\n" RESET_COLOR);
             fclose(file);
             return user.isAdmin;
         }
     }
-    printf("\n----------------Invalid username or password!-------------\n\n");
+
+    printf(RED_COLOR "\n----------------Invalid username or password!-------------\n\n" RESET_COLOR);
     fclose(file);
     return -1;
 }
